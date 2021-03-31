@@ -8,7 +8,7 @@ resources:
   - name: appl_build_info_output
     type: BuildInfo
     configuration:
-      sourceArtifactory: ARTFY_INT
+      sourceArtifactory: ARTFY_INT # <-- PREREQ: Create this Integration to your Artifactory Instance in Pipelines Admin 
       buildName: backend_build
       buildNumber: 1
 
@@ -30,7 +30,7 @@ resources:
     type: GitRepo
     configuration:
       path: colathurv/SwampUp2021 # <-- PREREQ: Mention fullpath of your forked Repository
-      gitProvider: GITHUB_INT
+      gitProvider: GITHUB_INT # <-- PREREQ: Create this Integration to your GitHub Organization where your forked Repo is located 
 
 
 pipelines:
