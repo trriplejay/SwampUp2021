@@ -1,0 +1,150 @@
+resources:
+  - name: be_gitRepo
+    type: GitRepo
+    configuration:
+      path: colathurv/SwampUp2021/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/java-backend # <-- PREREQ: Fork current github repository to your github organization and mention fullpath
+      gitProvider: GITHUB_INT 
+
+  - name: appl_build_info_output
+    type: BuildInfo
+    configuration:
+      sourceArtifactory: ARTFY_INT
+      buildName: backend_build
+      buildNumber: 1
+
+  - name: appl_build_info
+    type: BuildInfo
+    configuration:
+      sourceArtifactory: ARTFY_INT
+      buildName: backend_build
+      buildNumber: 1
+
+  - name: appl_promoted_build_info
+    type: BuildInfo
+    configuration:
+      sourceArtifactory: ARTFY_INT
+      buildName: backend_build
+      buildNumber: 1
+
+  - name: fe_gitRepo
+    type: GitRepo
+    configuration:
+      path: colathurv/SwampUp2021/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend # <-- PREREQ: Fork current github repository to your github organization and mention fullpath
+      gitProvider: GITHUB_INT
+
+
+pipelines:
+  - name: swampup2021_app_pipeline
+    steps:
+      - name: bld_backend
+        type: MvnBuild
+        configuration:
+          sourceLocation: .
+          mvnCommand: clean install -ntp
+          resolverSnapshotRepo: libs-snapshot-virtual
+          resolverReleaseRepo: libs-release-virtual # <-- PREREQ: Create 3 maven repositories: libs-release-local (type LOCAL), libs-remote (type REMOTE) and libs-release-virtual(type VIRTUAL). Have libs-release-virtual aggregate the local and remote, in that order.  
+          deployerSnapshotRepo: libs-snapshot-local
+          deployerReleaseRepo: libs-release-local
+          inputResources:
+            - name: be_gitRepo
+          integrations:
+            - name: ARTFY_INT
+          runtime:
+            type: image
+            image:
+              auto:
+                language: java
+                versions:
+                  - "11"
+        execution:
+          onStart:
+            - javac -version
+            - mvn --version
+
+      - name: bld_frontend
+        type: NpmBuild
+        configuration:
+          npmArgs: --no-progress --no-audit
+          sourceLocation: .
+          repositoryName: npm-virtual # <-- PREREQ: Create 3 npm repositories: npm-local (type LOCAL), npm-remote (type REMOTE) and npm-virtual (type VIRTUAL). Have npm-virtual aggregate the local and remote, in that order.  
+          inputResources:
+            - name: fe_gitRepo
+          integrations:
+            - name: ARTFY_INT
+
+      - name: pack_frontend
+        type: Bash
+        configuration:
+          inputSteps:
+            - name: bld_frontend
+          integrations:
+            - name: ARTFY_INT
+        execution:
+          onStart:
+            - export tempStateLocation="$step_tmp_dir/npmSourceState"
+            - restore_run_files npmBuildInputGitRepo $tempStateLocation
+            - pushd $tempStateLocation
+            - npm run build
+            - add_run_files $tempStateLocation/. npmBuildInputGitRepo
+
+      - name: publish_frontend
+        type: NpmPublish
+        configuration:
+          repositoryName: npm-local
+          inputSteps:
+            - name: pack_frontend
+          integrations:
+            - name: ARTFY_INT
+        execution:
+          onStart:
+            - export inputNpmBuildStepName="bld_frontend"
+
+      - name: build_app
+        type: Bash
+        configuration:
+          environmentVariables:
+            dockerImageName: vjnpipelines.jfrog.io/docker-local/app # PREREQ(REHYDRATION):  Change the server name to your environment's
+            dockerImageTag: ${run_number}
+          inputResources:
+            - name: be_gitRepo
+              trigger: false
+          inputSteps:
+            - name: bld_backend
+            - name: publish_frontend
+          integrations:
+            - name: ARTFY_INT
+        execution:
+          onStart:
+            - rm -rf $run_dir/workspace/jfrog
+            # <-- PREREQ (REHYDRATE int_XX_url, int_XX_user and int_XX_apikey by replacing XX by the name of the Artifactory Integration) 
+            - retry_command jfrog rt config --url $int_ARTFY_INT_url --user $int_ARTFY_INT_user --apikey $int_ARTFY_INT_apikey --interactive=false
+            - pushd $res_be_gitRepo_resourcePath
+            - jfrog rt dl npm-local/frontend/-/frontend-3.0.0.tgz client.tgz --flat
+            - jfrog rt dl libs-release-local/com/jfrog/backend/1.0.0/backend-1.0.0.jar server.jar --flat
+            - add_run_variables buildStepName=${step_name}
+            - add_run_variables ${step_name}_buildNumber=${run_number}
+            - add_run_variables ${step_name}_buildName=${pipeline_name}
+            - docker build --pull --no-cache -t $dockerImageName:$dockerImageTag --build-arg REGISTRY=${int_ARTFY_INT_url} .
+            - jfrog rt bce $pipeline_name $run_number
+            - jfrog rt docker-push $dockerImageName:$dockerImageTag docker-local --build-name=$pipeline_name --build-number=$run_number
+            - add_run_files /tmp/jfrog/. jfrog
+
+      - name: publish_app_build
+        type: PublishBuildInfo
+        configuration:
+          inputSteps:
+            - name: build_app
+          outputResources:
+            - name: appl_build_info
+
+      - name: promote_app_build
+        type: PromoteBuild
+        configuration:
+          targetRepository: docker-virtual # <-- PREREQ: Create 3 docker repositories: docker-local (type LOCAL), docker-remote (type REMOTE) and docker-virtual (type VIRTUAL). Have docker-virtual aggregate the local and remote, in that order. 
+          copy: true
+          integrations:
+            - name: ARTFY_INT
+          inputResources:
+            - name: appl_build_info
+          outputResources:
+            - name: appl_promoted_build_info
