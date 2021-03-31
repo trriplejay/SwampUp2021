@@ -3,7 +3,9 @@ resources:
     type: GitRepo
     configuration:
       path: colathurv/SwampUp2021 # <-- PREREQ: Fork current github repository to your github organization and mention fullpath of your forked Repository
-      gitProvider: GITHUB_INT 
+      gitProvider: GITHUB_INT
+      files:
+        include: ^java-backend/.*$
 
   - name: appl_build_info_output
     type: BuildInfo
@@ -30,7 +32,9 @@ resources:
     type: GitRepo
     configuration:
       path: colathurv/SwampUp2021 # <-- PREREQ: Mention fullpath of your forked Repository
-      gitProvider: GITHUB_INT # <-- PREREQ: Create this Integration to your GitHub Organization where your forked Repo is located 
+      gitProvider: GITHUB_INT # <-- PREREQ: Create this Integration to your GitHub Organization where your forked Repo is located
+      files:
+        include: ^vue-frontend/.*$
 
 
 pipelines:
