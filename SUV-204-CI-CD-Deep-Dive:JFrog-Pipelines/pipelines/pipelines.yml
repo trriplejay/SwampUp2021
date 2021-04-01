@@ -97,7 +97,8 @@ pipelines:
             - ls -l ./node_modules/vue
             - find . -name 'vue-cli-service' -print
             - echo $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
-            - npm --prefix $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend run build
+            - /node_modules/.bin/vue-cli-service build
+            #npm --prefix $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend run build
             - add_run_files $tempStateLocation/. npmBuildInputGitRepo
 
       - name: publish_frontend
