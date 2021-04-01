@@ -2,8 +2,8 @@ resources:
   - name: be_gitRepo
     type: GitRepo
     configuration:
-      path: colathurv/SwampUp2021 # <-- PREREQ: Fork current github repository to your github organization and mention fullpath of your forked Repository
-      gitProvider: GITHUB_INT
+      path: trriplejay/SwampUp2021 # <-- PREREQ: Fork current github repository to your github organization and mention fullpath of your forked Repository
+      gitProvider: johns_github
       files:
          # To ensure that only file changes in this sub-directoty triggers a run
         include: ^SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/.*$
@@ -11,29 +11,29 @@ resources:
   - name: appl_build_info_output
     type: BuildInfo
     configuration:
-      sourceArtifactory: ARTFY_INT # <-- PREREQ: Create this Integration to your Artifactory Instance in Pipelines Admin 
+      sourceArtifactory: s_artifactory # <-- PREREQ: Create this Integration to your Artifactory Instance in Pipelines Admin 
       buildName: backend_build
       buildNumber: 1
 
   - name: appl_build_info
     type: BuildInfo
     configuration:
-      sourceArtifactory: ARTFY_INT
+      sourceArtifactory: s_artifactory
       buildName: backend_build
       buildNumber: 1
 
   - name: appl_promoted_build_info
     type: BuildInfo
     configuration:
-      sourceArtifactory: ARTFY_INT
+      sourceArtifactory: s_artifactory
       buildName: backend_build
       buildNumber: 1
 
   - name: fe_gitRepo
     type: GitRepo
     configuration:
-      path: colathurv/SwampUp2021 # <-- PREREQ: Mention fullpath of your forked Repository
-      gitProvider: GITHUB_INT # <-- PREREQ: Create this Integration to your GitHub Organization where your forked Repo is located
+      path: trriplejay/SwampUp2021 # <-- PREREQ: Mention fullpath of your forked Repository
+      gitProvider: johns_github # <-- PREREQ: Create this Integration to your GitHub Organization where your forked Repo is located
       # To ensure that only file changes in this sub-directoty triggers a run
       files:
         include: ^SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/vue-frontend/.*$
@@ -56,7 +56,7 @@ pipelines:
           inputResources:
             - name: be_gitRepo
           integrations:
-            - name: ARTFY_INT
+            - name: s_artifactory
           runtime:
             type: image
             image:
@@ -80,7 +80,7 @@ pipelines:
           inputResources:
             - name: fe_gitRepo
           integrations:
-            - name: ARTFY_INT
+            - name: s_artifactory
 
       - name: pack_frontend
         type: Bash
@@ -88,7 +88,7 @@ pipelines:
           inputSteps:
             - name: bld_frontend
           integrations:
-            - name: ARTFY_INT
+            - name: s_artifactory
         execution:
           onStart:
             - export tempStateLocation="$step_tmp_dir/npmSourceState"
@@ -112,7 +112,7 @@ pipelines:
           inputSteps:
             - name: pack_frontend
           integrations:
-            - name: ARTFY_INT
+            - name: s_artifactory
         execution:
           onStart:
             - export inputNpmBuildStepName="bld_frontend"
@@ -130,7 +130,7 @@ pipelines:
             - name: bld_backend
             - name: publish_frontend
           integrations:
-            - name: ARTFY_INT
+            - name: s_artifactory
         execution:
           onStart:
             - rm -rf $run_dir/workspace/jfrog
@@ -161,7 +161,7 @@ pipelines:
           targetRepository: docker-virtual # <-- PREREQ: Create 3 docker repositories: docker-local (type LOCAL), docker-remote (type REMOTE) and docker-virtual (type VIRTUAL). Have docker-virtual aggregate the local and remote, in that order. 
           copy: true
           integrations:
-            - name: ARTFY_INT
+            - name: s_artifactory
           inputResources:
             - name: appl_build_info
           outputResources:
