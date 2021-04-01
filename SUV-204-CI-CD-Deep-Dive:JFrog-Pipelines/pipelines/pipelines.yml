@@ -87,9 +87,9 @@ pipelines:
             - name: ARTFY_INT
         execution:
           onStart:
-            - export tempStateLocation="$step_tmp_dir/npmSourceState"
+            - export tempStateLocation="$step_tmp_dir/npmSourceState/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend"
             - restore_run_files npmBuildInputGitRepo $tempStateLocation
-            - pushd $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
+            - pushd $tempStateLocation
             - npm run build
             - add_run_files $tempStateLocation/. npmBuildInputGitRepo
 
