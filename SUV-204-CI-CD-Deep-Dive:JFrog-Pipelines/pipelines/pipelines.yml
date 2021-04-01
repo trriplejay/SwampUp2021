@@ -6,7 +6,7 @@ resources:
       gitProvider: GITHUB_INT
       files:
          # To ensure that only file changes in this sub-directoty triggers a run
-        include: ^java-backend/.*$
+        include: ^SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/java-backend/.*$
 
   - name: appl_build_info_output
     type: BuildInfo
@@ -36,7 +36,7 @@ resources:
       gitProvider: GITHUB_INT # <-- PREREQ: Create this Integration to your GitHub Organization where your forked Repo is located
       # To ensure that only file changes in this sub-directoty triggers a run
       files:
-        include: ^vue-frontend/.*$
+        include: ^SUV-204-CI-CD-Deep-Dive\:JFrog-Pipelines/vue-frontend/.*$
 
 
 pipelines:
@@ -92,6 +92,7 @@ pipelines:
             - pushd $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
             - echo $PATH
             - ls -l
+            - ls -lR ./node_modules
             - npm run build
             - add_run_files $tempStateLocation/. npmBuildInputGitRepo
 
