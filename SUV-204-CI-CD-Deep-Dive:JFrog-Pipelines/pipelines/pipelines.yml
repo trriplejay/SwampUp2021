@@ -91,10 +91,12 @@ pipelines:
             - restore_run_files npmBuildInputGitRepo $tempStateLocation
             - pushd $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
             - echo $PATH
+            - pwd
             - ls -l
             - ls -lR ./node_modules/@vue
             - ls -lR ./node_modules/vue
-            - npm $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend run build
+            - echo $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
+            - npm --prefix $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend run build
             - add_run_files $tempStateLocation/. npmBuildInputGitRepo
 
       - name: publish_frontend
