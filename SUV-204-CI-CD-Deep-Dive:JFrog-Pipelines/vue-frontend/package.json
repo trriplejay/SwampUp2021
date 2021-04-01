@@ -10,7 +10,7 @@
     "test:unit": "vue-cli-service test:unit --coverage",
     "test:e2e": "vue-cli-service test:e2e",
     "test": "vue-cli-service test:unit && vue-cli-service test:e2e",
-    "build": "./node_modules/.bin/vue-cli-service build"
+    "build": "vue-cli-service build"
   },
   "dependencies": {
     "axios": "^0.18.0",
