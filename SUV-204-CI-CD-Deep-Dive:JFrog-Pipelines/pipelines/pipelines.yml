@@ -72,9 +72,9 @@ pipelines:
       - name: bld_frontend
         type: NpmBuild
         configuration:
-          npmArgs: --no-progress --no-audit
           environmentVariables: 
             JFROG_CLI_BUILD_NAME: frontend-build
+          npmArgs: --no-progress --no-audit --quiet && npm run build ||"
           sourceLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
           repositoryName: npm-virtual # <-- PREREQ: Create 3 npm repositories: npm-local (type LOCAL), npm-remote (type REMOTE) and npm-virtual (type VIRTUAL). Have npm-virtual aggregate the local and remote, in that order.  
           inputResources:
@@ -82,40 +82,40 @@ pipelines:
           integrations:
             - name: s_artifactory
 
-      - name: pack_frontend
-        type: Bash
-        configuration:
-          inputSteps:
-            - name: bld_frontend
-          integrations:
-            - name: s_artifactory
-        execution:
-          onStart:
-            - export tempStateLocation="$step_tmp_dir/npmSourceState"
-            - restore_run_files npmBuildInputGitRepo $tempStateLocation
-            - pushd $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
-            - echo $PATH
-            - pwd
-            - ls -l
-            - ls -l ./node_modules/@vue
-            - ls -l ./node_modules/.bin
-            - find . -name 'vue-cli-service' -print
-            - echo $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
-             #As opposed to npm run build, we are invoking the vue-cli-service directly
-            - ./node_modules/.bin/vue-cli-service build
-            - add_run_files $tempStateLocation/. npmBuildInputGitRepo
+#       - name: pack_frontend
+#         type: Bash
+#         configuration:
+#           inputSteps:
+#             - name: bld_frontend
+#           integrations:
+#             - name: s_artifactory
+#         execution:
+#           onStart:
+#             - export tempStateLocation="$step_tmp_dir/npmSourceState"
+#             - restore_run_files npmBuildInputGitRepo $tempStateLocation
+#             - pushd $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
+#             - echo $PATH
+#             - pwd
+#             - ls -l
+#             - ls -l ./node_modules/@vue
+#             - ls -l ./node_modules/.bin
+#             - find . -name 'vue-cli-service' -print
+#             - echo $tempStateLocation/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
+#              #As opposed to npm run build, we are invoking the vue-cli-service directly
+#             - ./node_modules/.bin/vue-cli-service build
+#             - add_run_files $tempStateLocation/. npmBuildInputGitRepo
 
       - name: publish_frontend
         type: NpmPublish
         configuration:
           repositoryName: npm-local
           inputSteps:
-            - name: pack_frontend
+            - name: bld_frontend
           integrations:
             - name: s_artifactory
-        execution:
-          onStart:
-            - export inputNpmBuildStepName="bld_frontend"
+#         execution:
+#           onStart:
+#             - export inputNpmBuildStepName="bld_frontend"
 
       - name: build_app
         type: Bash
@@ -135,7 +135,7 @@ pipelines:
           onStart:
             - rm -rf $run_dir/workspace/jfrog
             # <-- PREREQ (REHYDRATE int_XX_url, int_XX_user and int_XX_apikey by replacing XX by the name of the Artifactory Integration) 
-            - retry_command jfrog rt config --url $int_ARTFY_INT_url --user $int_ARTFY_INT_user --apikey $int_ARTFY_INT_apikey --interactive=false
+            - retry_command jfrog rt config --url $int_s_artifactory_url --user $int_s_artifactory_user --apikey $int_s_artifactory_apikey --interactive=false
             - pushd $res_be_gitRepo_resourcePath/SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/java-backend
             - jfrog rt dl npm-local/frontend/-/frontend-3.0.0.tgz client.tgz --flat
             - jfrog rt dl libs-release-local/com/jfrog/backend/1.0.0/backend-1.0.0.jar server.jar --flat
