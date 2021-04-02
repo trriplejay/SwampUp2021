@@ -47,8 +47,8 @@ pipelines:
         configuration:
           sourceLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/java-backend
           mvnCommand: clean install -ntp
-          environmentVariables:
-            JFROG_CLI_BUILD_NAME: backend-build
+#           environmentVariables:
+#             JFROG_CLI_BUILD_NAME: backend-build
           resolverSnapshotRepo: libs-snapshot-virtual
           resolverReleaseRepo: libs-release-virtual # <-- PREREQ: Create 3 maven repositories: libs-release-local (type LOCAL), libs-remote (type REMOTE) and libs-release-virtual(type VIRTUAL). Have libs-release-virtual aggregate the local and remote, in that order.  
           deployerSnapshotRepo: libs-snapshot-local
@@ -72,8 +72,8 @@ pipelines:
       - name: bld_frontend
         type: NpmBuild
         configuration:
-          environmentVariables: 
-            JFROG_CLI_BUILD_NAME: frontend-build
+#           environmentVariables: 
+#             JFROG_CLI_BUILD_NAME: frontend-build
           npmArgs: "--no-progress --no-audit --quiet && ./node_modules/.bin/vue-cli-service build ||"
           sourceLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
           repositoryName: npm-virtual # <-- PREREQ: Create 3 npm repositories: npm-local (type LOCAL), npm-remote (type REMOTE) and npm-virtual (type VIRTUAL). Have npm-virtual aggregate the local and remote, in that order.  
