@@ -158,7 +158,7 @@ pipelines:
       - name: promote_app_build
         type: PromoteBuild
         configuration:
-          targetRepository: docker-virtual # <-- PREREQ: Create 3 docker repositories: docker-local (type LOCAL), docker-remote (type REMOTE) and docker-virtual (type VIRTUAL). Have docker-virtual aggregate the local and remote, in that order. 
+          targetRepository: docker-prod # <-- PREREQ: Create 3 docker repositories: docker-local (type LOCAL), docker-remote (type REMOTE) and docker-virtual (type VIRTUAL). Have docker-virtual aggregate the local and remote, in that order. 
           copy: true
           integrations:
             - name: s_artifactory
