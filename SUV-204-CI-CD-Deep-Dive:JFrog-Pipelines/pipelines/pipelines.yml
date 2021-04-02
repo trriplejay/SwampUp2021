@@ -74,7 +74,7 @@ pipelines:
         configuration:
           environmentVariables: 
             JFROG_CLI_BUILD_NAME: frontend-build
-          npmArgs: --no-progress --no-audit --quiet && npm run build ||"
+          npmArgs: "--no-progress --no-audit --quiet && npm run build ||"
           sourceLocation: SUV-204-CI-CD-Deep-Dive:JFrog-Pipelines/vue-frontend
           repositoryName: npm-virtual # <-- PREREQ: Create 3 npm repositories: npm-local (type LOCAL), npm-remote (type REMOTE) and npm-virtual (type VIRTUAL). Have npm-virtual aggregate the local and remote, in that order.  
           inputResources:
